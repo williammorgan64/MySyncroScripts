@@ -1,0 +1,29 @@
+<#
+    This script counts the failed logins in the last 24 hours and sends alert to RMM if over threshold
+
+    Author: William Morgan
+    Last Edit: 12/01/20
+    Version 1.0 - initial release
+
+    Change variables as needed
+#>
+
+#Initialize
+Import-Module $env:SyncroModule -WarningAction SilentlyContinue
+
+#Variables
+$threshold = 50
+$AlertCategory = "Login Failure"
+
+#Action
+$result = (Get-WinEvent -FilterHashtable @{Logname='security';ID=4625;StartTime=[datetime]::Now.AddHours(-24)}).Count
+if ($result -ne 0) {
+    if ($result -ge $threshold) {
+        $AlertBody = "$result Failed Login Attempts"
+        Rmm-Alert -Category $AlertCategory -Body $AlertBody
+        (echo $AlertBody)
+        }
+    else
+        {(echo "Failed Logins Do Not Exceed Threshold")}
+}else
+    {(echo "No Failed Logins Recorded in last 24 hours")}
